@@ -1,4 +1,5 @@
 import bs4, requests, re
+from newspaper import ArticleException
 from newspaper import Article
 
 WEB = 'https://news.yandex.ru/yandsearch?lr=213&cl4url=ria.ru%2Feconomy%2F20161205%2F1482815380.html&content=alldocs&from=story'
@@ -11,21 +12,26 @@ for tag in tags:
     if tag['href'].startswith('http'):
         webs_ls.append(tag['href'])
 word_sets = []
-print(set(webs_ls))
+webs_ls = set(webs_ls)
 for elem in webs_ls:
+    print(elem)
     extractor = Article(elem, language='ru')
-    extractor.download()
-    extractor.parse()
-    print(extractor.text)
+    try:
+        extractor.download()
+        extractor.parse()
+    except ArticleException:
+        continue
     wut=re.sub('[^а-яёa-z0-9]'," ", extractor.text.lower()).split(' ')
     word_sets.append(list(filter(None, wut)))
 uniqueness = set(word_sets[0])
 lulness = set(word_sets[0])
-print(word_sets[-1])
+freq = {}
 for setto in word_sets:
-    print(uniqueness)
-    uniqueness = uniqueness & set(setto)
-    print(uniqueness)
-    lulness = lulness ^ set(setto)
-print(uniqueness)
-print(lulness)
+    print(setto)
+    for elem in set(setto):
+        freq[elem]+=1
+
+    # uniqueness = uniqueness & set(setto)
+    # print(uniqueness)
+    # lulness = lulness ^ set(setto)
+    # print(lulness)
