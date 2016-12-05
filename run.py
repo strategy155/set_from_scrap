@@ -1,6 +1,10 @@
-import bs4, requests, re
+import bs4, requests, re, operator
 from newspaper import ArticleException
 from newspaper import Article
+import matplotlib.pyplot as plt
+plt.rcdefaults()
+import numpy as np
+import matplotlib.pyplot as plt
 
 WEB = 'https://news.yandex.ru/yandsearch?lr=213&cl4url=ria.ru%2Feconomy%2F20161205%2F1482815380.html&content=alldocs&from=story'
 text = requests.get(WEB).text
@@ -21,17 +25,28 @@ for elem in webs_ls:
         extractor.parse()
     except ArticleException:
         continue
+    print(extractor.text)
     wut=re.sub('[^а-яёa-z0-9]'," ", extractor.text.lower()).split(' ')
     word_sets.append(list(filter(None, wut)))
 uniqueness = set(word_sets[0])
 lulness = set(word_sets[0])
 freq = {}
 for setto in word_sets:
-    print(setto)
     for elem in set(setto):
-        freq[elem]+=1
+        try:
+            freq[elem]+=1
+        except KeyError:
+            freq[elem] = 1
+    uniqueness = uniqueness & set(setto)
+    lulness = lulness ^ set(setto)
+truelulness = []
+for elem in lulness:
+    if freq[elem] > int(sum(freq.values())/len(freq)):
+        truelulness.append(elem)
 
-    # uniqueness = uniqueness & set(setto)
-    # print(uniqueness)
-    # lulness = lulness ^ set(setto)
-    # print(lulness)
+sorted_freq = sorted(freq.items(), key=operator.itemgetter(1))
+x_pos = np.arange(len(freq))
+plt.bar(freq.keys(), freq.values(), align='center')
+plt.xlabel('Performance')
+plt.title('How fast do you want to go today?')
+plt.show()
