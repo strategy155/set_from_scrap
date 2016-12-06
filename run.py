@@ -1,10 +1,12 @@
-import bs4, requests, re, operator
+import bs4, requests, re
 from newspaper import ArticleException
 from newspaper import Article
 import matplotlib.pyplot as plt
 plt.rcdefaults()
 import numpy as np
 import matplotlib.pyplot as plt
+from collections import OrderedDict
+from operator import itemgetter
 
 WEB = 'https://news.yandex.ru/yandsearch?lr=213&cl4url=ria.ru%2Feconomy%2F20161205%2F1482815380.html&content=alldocs&from=story'
 text = requests.get(WEB).text
@@ -28,25 +30,36 @@ for elem in webs_ls:
     print(extractor.text)
     wut=re.sub('[^а-яёa-z0-9]'," ", extractor.text.lower()).split(' ')
     word_sets.append(list(filter(None, wut)))
-uniqueness = set(word_sets[0])
-lulness = set(word_sets[0])
+uniqueness = set(word_sets[-1])
+lulness = set(word_sets[-1])
+wow = lulness
 freq = {}
-for setto in word_sets:
-    for elem in set(setto):
-        try:
-            freq[elem]+=1
-        except KeyError:
-            freq[elem] = 1
-    uniqueness = uniqueness & set(setto)
-    lulness = lulness ^ set(setto)
-truelulness = []
-for elem in lulness:
-    if freq[elem] > int(sum(freq.values())/len(freq)):
-        truelulness.append(elem)
-
-sorted_freq = sorted(freq.items(), key=operator.itemgetter(1))
-x_pos = np.arange(len(freq))
-plt.bar(freq.keys(), freq.values(), align='center')
-plt.xlabel('Performance')
-plt.title('How fast do you want to go today?')
-plt.show()
+counter = 0
+lulsum = 0
+for elem1 in word_sets:
+    counter+=1
+    lulsum += len(set(elem1) & lulness)
+thresh = lulsum/counter
+for elem1 in word_sets:
+    if len(set(elem1) & lulness) > thresh:
+        wow = wow ^ set(elem1)
+        uniqueness = uniqueness & set(elem1)
+print(wow)
+print(uniqueness)
+# for setto in word_sets:
+#     for elem in set(setto):
+#         try:
+#             freq[elem]+=1
+#         except KeyError:
+#             freq[elem] = 1
+#     uniqueness = uniqueness & set(setto)
+#     lulness = lulness ^ set(setto)
+#
+# truelulness = []
+# for elem in lulness:
+#     if freq[elem] > int(sum(freq.values())/len(freq)):
+#         truelulness.append(elem)
+#
+# freq = OrderedDict(sorted(freq.items(), key = itemgetter(1) ))
+# for elem in lulness:
+#     print(elem,freq[elem])
