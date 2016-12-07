@@ -1,14 +1,11 @@
 import bs4, requests, re
 from newspaper import ArticleException
 from newspaper import Article
-import matplotlib.pyplot as plt
-plt.rcdefaults()
-import numpy as np
-import matplotlib.pyplot as plt
+
 from collections import OrderedDict
 from operator import itemgetter
 
-WEB = 'https://news.yandex.ru/yandsearch?lr=213&cl4url=ria.ru%2Feconomy%2F20161205%2F1482815380.html&content=alldocs&from=story'
+WEB = "https://news.yandex.ru/yandsearch?lr=213&cl4url=ria.ru%2Feconomy%2F20161205%2F1482815380.html&content=alldocs&from=story"
 text = requests.get(WEB).text
 soup = bs4.BeautifulSoup(text,'html.parser')
 soup_res = soup.find('div', attrs={'class':'story__main'})
@@ -34,18 +31,22 @@ uniqueness = set(word_sets[-1])
 lulness = set(word_sets[-1])
 wow = lulness
 freq = {}
-counter = 0
-lulsum = 0
-for elem1 in word_sets:
-    counter+=1
-    lulsum += len(set(elem1) & lulness)
-thresh = lulsum/counter
-for elem1 in word_sets:
-    if len(set(elem1) & lulness) > thresh:
-        wow = wow ^ set(elem1)
-        uniqueness = uniqueness & set(elem1)
+ordered_texts = {}
+for idx, elem1 in enumerate(word_sets):
+    counter=0
+    sum = 0
+    for elem2 in word_sets:
+        counter += 1
+        sum += len(set(elem1) & lulness)
+    ordered_texts[idx]=sum/counter
+lul = OrderedDict(sorted(ordered_texts.items(), key = itemgetter(1)))
+for elem1 in list(lul.keys())[-30:-1]:
+    print(elem1)
+    wow = wow ^ set(word_sets[elem1])
+    uniqueness = uniqueness & set(word_sets[elem1])
 print(wow)
 print(uniqueness)
+print(lul)
 # for setto in word_sets:
 #     for elem in set(setto):
 #         try:
